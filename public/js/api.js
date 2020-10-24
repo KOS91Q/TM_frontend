@@ -22,7 +22,6 @@ const REQUEST_TYPE = {
     PUT: 'PUT',
     DELETE: 'DELETE'
 }
-
 const ACCESS_TOKEN = 'accessToken'
 const OAUTH2_REDIRECT_URI = window.origin + '/oauth2/redirect';
 const url = {
