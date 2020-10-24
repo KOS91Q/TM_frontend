@@ -1,7 +1,9 @@
 import {authView, utilView} from "./view.js";
+
 export {service, itemType, url};
 
-const API_BASE_URL = 'https://kos-test.herokuapp.com/';
+// const API_URL = 'https://kos-todo-backend.herokuapp.com/';
+const API_URL = 'http://localhost:8087/';
 const itemType = {
     PROJECT: 'project',
     TASK: 'task'
@@ -14,25 +16,25 @@ const provider = {
     facebook: 'facebook'
 }
 
-const REQUEST_TYPE = Object.freeze({
+const REQUEST_TYPE = {
     GET: 'GET',
     POST: 'POST',
     PUT: 'PUT',
     DELETE: 'DELETE'
-})
+}
 
 const ACCESS_TOKEN = 'accessToken'
 const OAUTH2_REDIRECT_URI = window.origin + '/oauth2/redirect';
 const url = {
-    PROJECT: API_BASE_URL + itemType.PROJECT,
-    TASK: API_BASE_URL + itemType.TASK,
-    BASE: API_BASE_URL,
-    USER_ME: API_BASE_URL + "user/me",
-    LOGIN: API_BASE_URL + "auth/login",
-    SING_UP: API_BASE_URL + "auth/signup",
-    GOOGLE_AUTH: `${API_BASE_URL}oauth2/authorize/${provider.google}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
-    GITHUB_AUTH: `${API_BASE_URL}oauth2/authorize/${provider.github}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
-    FACEBOOK_AUTH: `${API_BASE_URL}oauth2/authorize/${provider.facebook}?redirect_uri=${OAUTH2_REDIRECT_URI}`
+    PROJECT: API_URL + itemType.PROJECT,
+    TASK: API_URL + itemType.TASK,
+    BASE: API_URL,
+    USER_ME: API_URL + "user/me",
+    LOGIN: API_URL + "auth/login",
+    SING_UP: API_URL + "auth/signup",
+    GOOGLE_AUTH: `${API_URL}oauth2/authorize/${provider.google}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
+    GITHUB_AUTH: `${API_URL}oauth2/authorize/${provider.github}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
+    FACEBOOK_AUTH: `${API_URL}oauth2/authorize/${provider.facebook}?redirect_uri=${OAUTH2_REDIRECT_URI}`
 }
 
 $.ajaxSetup({
@@ -85,11 +87,11 @@ function request(urlRequest, type, show, data) {
         success(response) {
             utilView.notify(response.message, response.status)
             show(response.data ? response.data : response)
-            console.log(type, '|', urlRequest, '|', new URLSearchParams(data).toString(), '|', show.name, '|', response);
+            // console.log(type, '|', urlRequest, '|', new URLSearchParams(data).toString(), '|', show.name, '|', response);
             return true;
         },
         error: (response) => {
-            console.log(type, '|', urlRequest, '|', new URLSearchParams(data).toString(), '|', show.name, '|', response);
+            // console.log(type, '|', urlRequest, '|', new URLSearchParams(data).toString(), '|', show.name, '|', response);
             if (response.responseJSON) {
                 utilView.notify(response.responseJSON.message, response.statusText)
                 if (response.responseJSON.error === "Unauthorized") {
