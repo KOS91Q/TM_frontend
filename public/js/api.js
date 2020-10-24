@@ -2,8 +2,8 @@ import {authView, utilView} from "./view.js";
 
 export {service, itemType, url};
 
-// const API_URL = 'https://kos-todo-backend.herokuapp.com/';
-const API_URL = 'http://localhost:8087/';
+const API_URL = 'https://kos-todo-backend.herokuapp.com/';
+// const API_URL = 'http://localhost:8087/';
 const itemType = {
     PROJECT: 'project',
     TASK: 'task'
