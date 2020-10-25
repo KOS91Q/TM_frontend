@@ -1,5 +1,5 @@
 use Rack::Static,
-  :urls => ["/images", "/js", "/css"],
+  :urls => %w[/images /js /css /favicon.ico],
   :root => "public"
 
 use Rack::Static,
