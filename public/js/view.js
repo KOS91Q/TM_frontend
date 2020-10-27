@@ -37,7 +37,7 @@ const authView = {
     me: (user) => {
         $('#user_email').text(user.name).attr('title', user.provider + ' account')
         projectView.show(user.projects)
-        if (service.provider.local !== user.provider && user.imageUrl){
+        if (service.provider.local !== user.provider && user.imageUrl) {
             $(`#user_email`).after(`<img id="user_logo" src="${user.imageUrl}" alt="${user.name}">`);
         }
     },
@@ -63,6 +63,9 @@ const taskView = {
             .text(task.name)
             .fadeOut(500)
             .fadeIn(500);
+    },
+    changeStatus: task => {
+        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('status', task.status);
     },
     delete: task => {
         let $item = $(`.task[data-id='${task.id}']`);

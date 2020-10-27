@@ -99,6 +99,10 @@ const taskAction = {
         },
         'shown.bs.modal': function () {
             $(this).find(`input[name='name']`).trigger('focus')
+            $(`#taskStatus`).data('ready', true);
+        },
+        'hide.bs.modal': function () {
+            $(this).find(`#taskStatus[data-ready]`).data('ready', false);
         },
         submit: function () {
             let $this = $(this);
@@ -111,20 +115,23 @@ const taskAction = {
             $this.closest('.modal').modal('hide');
             return false;
         },
-        changeStatus: $(document).on('click', `#taskStatus input`, function () {
+        changeStatus: $(document).on('change', `#taskStatus input`, function () {
             let $this = $(this);
-            console.log($this)
-            service.request(
-                url.TASK,
-                service.REQUEST_TYPE.PUT,
-                () => null,
-                service.prepareData(
-                    {
-                        id: $this.closest(`form`).find(`input[name="id"]`).val(),
-                        status: $this.parent().data('status')
-                    }
+            if ($this.closest('#taskStatus').data('ready')) {
+                service.request(
+                    url.TASK,
+                    service.REQUEST_TYPE.PUT,
+                    taskView.changeStatus,
+                    service.prepareData(
+                        {
+                            id: $this.closest(`form`).find(`input[name="id"]`).val(),
+                            status: $this.parent().data('status')
+                        }
+                    )
                 )
-            )
+            } else {
+                return false;
+            }
         })
     }),
     validEditName: $(document).on('click', '#taskModal form button', function () {
