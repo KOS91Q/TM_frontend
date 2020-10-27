@@ -1,4 +1,4 @@
-import {url, service} from './api.js'
+import {service, url} from './api.js'
 import {authView, projectView, taskView, utilView} from './view.js'
 
 $('a.google-btn').attr('href', url.GOOGLE_AUTH)
@@ -87,12 +87,14 @@ const projectAction = {
     })
 }
 const taskAction = {
-    editModal: $('#taskName').on({
+    editModal: $('#taskModal').on({
         'show.bs.modal': function (event) {
             let $task = $(event.relatedTarget).closest('.task')
             let modal = $(this)
+            modal.find(`[data-status]`).removeClass('active');
             modal.find(`input[name='oldName']`).val($task.find('.task-name').text())
             modal.find(`input[name='id']`).val($task.data('id'));
+            modal.find(`[data-status='${$task.data('status')}']`).button('toggle');
             modal.find(`input[name='name']`).val($task.find('.task-name').text())
         },
         'shown.bs.modal': function () {
@@ -108,9 +110,24 @@ const taskAction = {
             );
             $this.closest('.modal').modal('hide');
             return false;
-        }
+        },
+        changeStatus: $(document).on('click', `#taskStatus input`, function () {
+            let $this = $(this);
+            console.log($this)
+            service.request(
+                url.TASK,
+                service.REQUEST_TYPE.PUT,
+                () => null,
+                service.prepareData(
+                    {
+                        id: $this.closest(`form`).find(`input[name="id"]`).val(),
+                        status: $this.parent().data('status')
+                    }
+                )
+            )
+        })
     }),
-    validEditName: $(document).on('click', '#taskName form button', function () {
+    validEditName: $(document).on('click', '#taskModal form button', function () {
         let $inputName = $(this).closest(`form`).find(`input[name='name']`);
         let name = $inputName.val().trim()
         $inputName.val(name)
@@ -124,7 +141,7 @@ const taskAction = {
         }
         $name.focus()
     }),
-    submitIfRenameValid: $(`#taskName form input[name='name']`).on('keyup', function (e) {
+    submitIfRenameValid: $(`#taskModal form input[name='name']`).on('keyup', function (e) {
         if (e.key === 'Enter') {
             $(this).closest(`form`).find(`button[type='submit']`).click();
         }

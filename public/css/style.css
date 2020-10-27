@@ -118,8 +118,11 @@ header {
     margin: -5px 10px 0 -15px;
 }
 
-.task {
-    min-height: 30px;
+.task {    min-height: 40px;
+
+}
+.task p {
+    margin-bottom: 0;
 }
 
 .tasks {
@@ -191,6 +194,10 @@ svg {
 
 .tasks tr:hover .hidden {
     display: block;
+}
+.tasks tr td {
+    padding-bottom: 0;
+    padding-top: 0;
 }
 
 .authenticated, .unauthenticated {

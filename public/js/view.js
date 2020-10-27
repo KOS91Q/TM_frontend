@@ -168,15 +168,15 @@ function prepareProject(project) {
 }
 
 function prepareTask(task) {
-    return `<tr class="row m-0 border-bottom task" data-id="${task.id}">
-                <td class="col-1 border-right align-self-stretch">
+    return `<tr class="row m-0 border-bottom task" data-status="${task.status}" data-id="${task.id}">
+                <td class="col-1 border-right modal-dialog-centered">
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="task-select_${task.id}">
                         <label class="custom-control-label" for="task-select_${task.id}"></label>
                     </div>
                 </td>
-                <td class="col-9 border-left border-left border-right"><p class="task-name">${task.name}</p></td>
-                <td class="col-2 task-change-icons hidden">
+                <td class="col-9 border-left border-right"><p class="task-name btn-group-vertical">${task.name}</p></td>
+                <td class="col-2 task-change-icons hidden align-self-center">
                     <div class="row form-row">
                         <button  class="btn col-4" data-toggle="tooltip" data-placement="top" title="Tooltip on top">
                             <svg width="1em" height="1em" viewBox="0 0 16 16"
@@ -187,7 +187,7 @@ function prepareTask(task) {
                             </svg>
                         </button>
                         <button class="btn col-4">
-                            <svg data-toggle="modal" data-target="#taskName" class="bi bi-pen edit"
+                            <svg data-toggle="modal" data-target="#taskModal" class="bi bi-pen edit"
                                  fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd"
                                       d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
