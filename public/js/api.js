@@ -33,13 +33,13 @@ const url = {
     SING_UP: API_URL + 'auth/signup',
     GOOGLE_AUTH: `${API_URL}oauth2/authorize/${provider.google}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
     GITHUB_AUTH: `${API_URL}oauth2/authorize/${provider.github}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
-    FACEBOOK_AUTH: `${API_URL}oauth2/authorize/${provider.facebook}?redirect_uri=${OAUTH2_REDIRECT_URI}`,
+    FACEBOOK_AUTH: `${API_URL}oauth2/authorize/${provider.facebook}?redirect_uri=${OAUTH2_REDIRECT_URI}`
 };
 
 $.ajaxSetup({
     cache: false,
     processData: false,
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'application/json'}
 });
 
 const service = {

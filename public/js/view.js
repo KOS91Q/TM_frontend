@@ -19,10 +19,7 @@ const notifyView = {
             element: $(`.project[data-id='${projectId}']`),
             placement: {from: 'top', align: 'left'},
             offset: {x: 0},
-            animate: {
-                enter: 'animated flipInY',
-                exit: 'animated flipOutX',
-            },
+            animate: {enter: 'animated flipInY', exit: 'animated flipOutX'},
             timer: 500,
             delay: 0,
             template:
@@ -31,12 +28,15 @@ const notifyView = {
                     [<span class="d-inline">1</span>] tasks selected
                     <button data-task_ids="[${taskId}]" class="btn btn-sm btn-outline-light d-inline">delete?</button>
                 </div>`,
-            onClose: function () {
-                $(this).closest(`.project`).find(`input[type="checkbox"]`).prop('checked', false);
-            },
-        });
-    },
+            onClose: disableCheckedTasks,
+            onClosed: disableCheckedTasks
+        })
+    }
 };
+
+function disableCheckedTasks() {
+    $(this).closest(`.project`).find(`input[type="checkbox"]:checked`).prop('checked', false);
+}
 
 const authView = {
     singUp: () => {
@@ -59,8 +59,7 @@ const authView = {
         $('#user_email').text(user.name).attr('title', user.provider + ' account');
         projectView.show(user.projects);
         if (service.provider.local !== user.provider && user.imageUrl) {
-            $(`#user_email`).after(
-                `<img id="user_logo" src="${user.imageUrl}" alt="${user.name}">`);
+            $(`#user_email`).after(`<img id="user_logo" src="${user.imageUrl}" alt="${user.name}">`);
         }
     },
     toggleLoginOrSingUp: $('#btn-sign_up, #auth #cancel_sign_up').click(
@@ -71,10 +70,6 @@ const authView = {
     },
 };
 
-function resetForms() {
-    $(`form#sign_up, form#sign_in`).trigger('reset');
-}
-
 const taskView = {
     add: task => {
         let $tasks = $(`.project[data-id='${task.projectId}'] .tasks`);
@@ -82,11 +77,11 @@ const taskView = {
         $tasks.find(`.space`).remove();
         $tasks.children().append($taskView);
         $tasks.animate({scrollTop: $tasks.prop('scrollHeight')});
-        $taskView.fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
+        $taskView.fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);
     },
     update: task => {
-        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}'] .task-name`).text(task.name).fadeOut(
-            500).fadeIn(500);
+        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}'] .task-name`).text(task.name).fadeOut(500)
+            .fadeIn(500);
     },
     updateStatus: task => {
         $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('status', task.status);
@@ -101,37 +96,43 @@ const taskView = {
     },
     deleteMultiple: project => {
         $(`.project[data-id='${project.id}'] .task-delete button.close`).click();
-        taskRemoveAndAddProjectFooter(
-            $(project.tasks.map(task => `.task[data-id='${task.id}']`).join(', ')));
+        taskRemoveAndAddProjectFooter($(project.tasks.map(task => `.task[data-id='${task.id}']`).join(', ')));
     },
 };
 
 const projectView = {
     show: projects => {
-        $(`.projects`).append(projects.map(project => prepareProject(project)).join('') +
-            addProjectButton);
+        $(`.projects`).append(projects.map(project => prepareProject(project)).join('') + addProjectButton);
     },
     add: project => {
         let $projects = $('.projects');
         let $project = $(prepareProject(project));
         $projects.children().last().before($project);
         $projects.animate({scrollTop: $projects.prop('scrollHeight')});
-        $project.fadeOut(500).fadeIn(500);
+        $project.fadeOut(300).fadeIn(300);
     },
     rename: project => {
         $(`.project[data-id='${project.id}'] .pr-header-name`).text(project.name);
     },
     delete: project => {
-        $(`.project[data-id='${project.id}']`).remove();
-    },
+        $(`.project[data-id='${project.id}']`).fadeOut(500, function () {
+            $(this).remove();
+        });
+    }
 };
 
-function taskRemoveAndAddProjectFooter($task) {
-    let $parent = $task.parent();
-    $task.remove();
-    if (!$parent.children().length) {
-        $parent.append(`<tr class="row m-0 border-bottom space task"></tr>`);
-    }
+function resetForms() {
+    $(`form#sign_up, form#sign_in`).trigger('reset');
+}
+
+function taskRemoveAndAddProjectFooter($tasks) {
+    let $parent = $tasks.parent();
+    $tasks.each((i, task) => $(task).fadeOut(400 * (i + 1), function () {
+        $(this).remove()
+        if (!$parent.children().length) {
+            $parent.append(`<tr class="row m-0 border-bottom space task"></tr>`);
+        }
+    }))
 }
 
 function makeTasks(tasks) {

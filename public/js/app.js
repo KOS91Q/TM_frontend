@@ -189,29 +189,30 @@ const taskAction = {
         }
     }),
     checkToDelete: $(document).on('click', `.task input[type="checkbox"]`, function () {
-        let $this = $(this);
-        let projectId = $this.closest(`.project`).data('id');
+        let $checkbox = $(this);
+        let projectId = $checkbox.closest(`.project`).data('id');
         if (!$(`.project[data-id='${projectId}'] .task-delete`).length) {
-            notifyView.tasksDelete(projectId, $this.data('id'),
+            notifyView.tasksDelete(projectId, $checkbox.data('id'),
                 $(`.task-delete`).length);
         } else {
-            let $taskBtn = $(
-                `.project[data-id='${projectId}'] .task-delete button[data-task_ids]`);
-            if ($this.is(':checked')) {
-                $taskBtn.data('task_ids').push($this.data('id'));
+            let $taskBtn = $(`.project[data-id='${projectId}'] .task-delete button[data-task_ids]`);
+            let ids = new Set($taskBtn.data('task_ids'));
+            if ($checkbox.is(':checked')) {
+                ids.add($checkbox.data('id'));
             } else {
-                $taskBtn.data('task_ids').splice($taskBtn.data('task_ids').indexOf($this.data('id')), 1);
+                ids.delete($checkbox.data('id'));
             }
-            if ($taskBtn.data('task_ids').length) {
-                $(`.project[data-id='${projectId}'] .task-delete span`).text($taskBtn.data('task_ids').length);
+            if (ids.size) {
+                $(`.project[data-id='${projectId}'] .task-delete span`).text(ids.size);
             } else {
                 $(`.project[data-id='${projectId}'] .task-delete button.close`).click();
             }
+            $taskBtn.data('task_ids', ids);
         }
     }),
     deleteMultiple: $(document).on('click', `.project .task-delete [data-task_ids]`, function () {
         let $this = $(this);
-        let ids = $this.data('task_ids');
+        let ids = Array.from($this.data('task_ids'));
         if (confirm('Delete ' + ids.length + ' tasks?')) {
             service.request(
                 url.TASK + `/multiple`,
@@ -219,8 +220,8 @@ const taskAction = {
                 taskView.deleteMultiple,
                 service.prepareData({
                     id: $this.closest(`.project`).data('id'),
-                    tasks: ids.map(id => ({id: id})),
-                }),
+                    tasks: ids.map(id => ({id: id}))
+                })
             );
         }
     })
