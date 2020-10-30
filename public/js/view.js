@@ -1,103 +1,141 @@
-export {taskView, projectView, authView, utilView};
-import {service} from './api.js'
+export {taskView, projectView, authView, notifyView};
+import {service} from './api.js';
 
-const utilView = {
+const notifyView = {
+    notifyDefault: $.notifyDefaults({
+        placement: {from: 'bottom'},
+        showAnimation: 'slideDown',
+        animate: {enter: 'animated fadeInRight', exit: 'animated fadeOutRight'},
+        timer: 500,
+        z_index: 9999,
+    }),
     notify: (message, status) => {
         if (message && status) {
-            $.notify(message, {
-                className: status,
-                showAnimation: 'slideDown',
-                position: `bottom right`
-            })
+            $.notify({message: message}, {type: status});
         }
     },
-    isAuthorized: (is) => {
-        $(".authenticated").css({display: is ? 'block' : 'none'});
-        $(".unauthenticated").css({display: is ? 'none' : 'block'});
-    }
-}
+    tasksDelete: (projectId, taskId) => {
+        $.notify({}, {
+            element: $(`.project[data-id='${projectId}']`),
+            placement: {from: 'top', align: 'left'},
+            offset: {x: 0},
+            animate: {
+                enter: 'animated flipInY',
+                exit: 'animated flipOutX',
+            },
+            timer: 500,
+            delay: 0,
+            template:
+                `<div class="alert alert-{0} task-delete" role="alert">
+                    <button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>
+                    [<span class="d-inline">1</span>] tasks selected
+                    <button data-task_ids="[${taskId}]" class="btn btn-sm btn-outline-light d-inline">delete?</button>
+                </div>`,
+            onClose: function () {
+                $(this).closest(`.project`).find(`input[type="checkbox"]`).prop('checked', false);
+            },
+        });
+    },
+};
 
 const authView = {
     singUp: () => {
         $('#auth #cancel_sign_up').click();
-        $(`form#sign_in input[name='email']`).focus()
+        $(`form#sign_in input[name='email']`).focus();
         resetForms();
     },
     signIn: response => {
         service.saveToken(response);
-        utilView.notify("You're successfully signed in", 'success');
+        notifyView.notify('You\'re successfully signed in', 'success');
         resetForms();
         service.load();
     },
     logout: () => {
-        $(`.projects`).empty()
-        $('#user').text('')
-        $('#user_logo').remove()
+        $(`.projects`).empty();
+        $('#user').text('');
+        $('#user_logo').remove();
     },
     me: (user) => {
-        $('#user_email').text(user.name).attr('title', user.provider + ' account')
-        projectView.show(user.projects)
+        $('#user_email').text(user.name).attr('title', user.provider + ' account');
+        projectView.show(user.projects);
         if (service.provider.local !== user.provider && user.imageUrl) {
-            $(`#user_email`).after(`<img id="user_logo" src="${user.imageUrl}" alt="${user.name}">`);
+            $(`#user_email`).after(
+                `<img id="user_logo" src="${user.imageUrl}" alt="${user.name}">`);
         }
     },
-    toggleLoginOrSingUp: $('#btn-sign_up, #auth #cancel_sign_up')
-        .click(() => $('#auth #sign_in, #btn-sign_up, #auth #sign_up').toggle())
-}
+    toggleLoginOrSingUp: $('#btn-sign_up, #auth #cancel_sign_up').click(
+        () => $('#auth #sign_in, #btn-sign_up, #auth #sign_up').toggle()),
+    isAuthorized: (is) => {
+        $('.authenticated').css({display: is ? 'block' : 'none'});
+        $('.unauthenticated').css({display: is ? 'none' : 'block'});
+    },
+};
 
 function resetForms() {
-    $(`form#sign_up, form#sign_in`).trigger('reset')
+    $(`form#sign_up, form#sign_in`).trigger('reset');
 }
 
 const taskView = {
     add: task => {
         let $tasks = $(`.project[data-id='${task.projectId}'] .tasks`);
         let $taskView = $(prepareTask(task));
-        $tasks.find(`.space`).remove()
+        $tasks.find(`.space`).remove();
         $tasks.children().append($taskView);
-        $tasks.animate({scrollTop: $tasks.prop("scrollHeight")});
-        $taskView.fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500)
+        $tasks.animate({scrollTop: $tasks.prop('scrollHeight')});
+        $taskView.fadeOut(500).fadeIn(500).fadeOut(500).fadeIn(500);
     },
     update: task => {
-        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}'] .task-name`)
-            .text(task.name)
-            .fadeOut(500)
-            .fadeIn(500);
+        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}'] .task-name`).text(task.name).fadeOut(
+            500).fadeIn(500);
     },
-    changeStatus: task => {
+    updateStatus: task => {
         $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('status', task.status);
     },
+    updateDeadline: task => {
+        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('deadline', task.deadline);
+    },
     delete: task => {
-        let $item = $(`.task[data-id='${task.id}']`);
-        let $parent = $item.parent();
-        $item.remove();
-        if (!$parent.children().length) {
-            $parent.append(`<tr class="row m-0 border-bottom space task"></tr>`)
-        }
-    }
-}
+        let $task = $(`.task[data-id='${task.id}']`);
+        $task.find(`input[type="checkbox"]:checked`).click();
+        taskRemoveAndAddProjectFooter($task);
+    },
+    deleteMultiple: project => {
+        $(`.project[data-id='${project.id}'] .task-delete button.close`).click();
+        taskRemoveAndAddProjectFooter(
+            $(project.tasks.map(task => `.task[data-id='${task.id}']`).join(', ')));
+    },
+};
 
 const projectView = {
     show: projects => {
-        $(`.projects`).append(projects.map(project => prepareProject(project)).join('') + addProjectButton);
+        $(`.projects`).append(projects.map(project => prepareProject(project)).join('') +
+            addProjectButton);
     },
     add: project => {
         let $projects = $('.projects');
         let $project = $(prepareProject(project));
         $projects.children().last().before($project);
-        $projects.animate({scrollTop: $projects.prop("scrollHeight")});
-        $project.fadeOut(500).fadeIn(500)
+        $projects.animate({scrollTop: $projects.prop('scrollHeight')});
+        $project.fadeOut(500).fadeIn(500);
     },
     rename: project => {
-        $(`.project[data-id='${project.id}'] .pr-header-name`).text(project.name)
+        $(`.project[data-id='${project.id}'] .pr-header-name`).text(project.name);
     },
     delete: project => {
         $(`.project[data-id='${project.id}']`).remove();
+    },
+};
+
+function taskRemoveAndAddProjectFooter($task) {
+    let $parent = $task.parent();
+    $task.remove();
+    if (!$parent.children().length) {
+        $parent.append(`<tr class="row m-0 border-bottom space task"></tr>`);
     }
 }
 
 function makeTasks(tasks) {
-    return tasks.map(task => prepareTask(task)).join('')
+    return tasks.map(task => prepareTask(task)).join('');
 }
 
 const addProjectButton =
@@ -112,7 +150,7 @@ const addProjectButton =
                 <span class="text-light">Add TODO List</span>
             </button>
         </div>
-    </div>`
+    </div>`;
 
 function prepareProject(project) {
     const tasks = project.tasks.length
@@ -171,10 +209,10 @@ function prepareProject(project) {
 }
 
 function prepareTask(task) {
-    return `<tr class="row m-0 border-bottom task" data-status="${task.status}" data-id="${task.id}">
+    return `<tr class="row m-0 border-bottom task" data-status="${task.status}" data-deadline="${task.deadline}" data-id="${task.id}">
                 <td class="col-1 border-right modal-dialog-centered">
                     <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="task-select_${task.id}">
+                        <input type="checkbox" class="custom-control-input" data-id="${task.id}" id="task-select_${task.id}">
                         <label class="custom-control-label" for="task-select_${task.id}"></label>
                     </div>
                 </td>
@@ -207,5 +245,5 @@ function prepareTask(task) {
                         </button>
                     </div>
                 </td>
-            </tr>`
+            </tr>`;
 }

@@ -1,5 +1,5 @@
 body {
-    overflow-x:hidden;
+    overflow-x: hidden;
     background: url("../images/background.jpg") no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -118,9 +118,11 @@ header {
     margin: -5px 10px 0 -15px;
 }
 
-.task {    min-height: 40px;
+.task {
+    min-height: 40px;
 
 }
+
 .task p {
     margin-bottom: 0;
 }
@@ -195,6 +197,7 @@ svg {
 .tasks tr:hover .hidden {
     display: block;
 }
+
 .tasks tr td {
     padding-bottom: 0;
     padding-top: 0;
@@ -205,10 +208,56 @@ svg {
 }
 
 .notifyjs-corner {
-    
+
 }
+
 img#user_logo {
     border-radius: 50%;
     width: 40px;
     margin-left: 10px;
+}
+
+input {
+    position: relative;
+    width: 150px;
+    color: white;
+}
+
+input:before {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    content: attr(data-deadline);
+    display: inline-block;
+    color: black;
+}
+
+input::-webkit-datetime-edit, input::-webkit-inner-spin-button, input::-webkit-clear-button {
+    display: none;
+}
+
+input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 3px;
+    right: 0;
+    color: black;
+    opacity: 1;
+}
+
+input#deadline {
+    color: black !important;
+}
+
+.task-delete {
+    padding: 2px 20px 0 10px;
+    height: 37px;
+    top: -40px !important;
+    background: rgb(55, 90, 142);
+    border: none;
+    color: white;
+    linear-gradient(0deg, rgba(55, 90, 142, 1) 0%, rgba(64, 110, 173, 1) 50%, rgba(83, 132, 190, 1) 100%);
+}
+
+.task-delete .close {
+    margin: -10px -10px 0 0;
 }
