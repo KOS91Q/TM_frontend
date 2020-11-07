@@ -1,5 +1,14 @@
 export {taskView, projectView, authView, notifyView};
-import {service} from './api.js';
+import {service, url} from './api.js';
+
+const minDate = new Date().toISOString().split('T')[0];
+
+function trSelected() {
+    $(document).on('click', `tr.task`, function () {
+        $(this).addClass(`hovered`).find(`.task-change-icons`).addClass(`d-block`)
+        $(this).siblings().removeClass(`hovered`).find(`.task-change-icons`).removeClass(`d-block`)
+    })
+}
 
 const notifyView = {
     notifyDefault: $.notifyDefaults({
@@ -58,6 +67,8 @@ const authView = {
     me: (user) => {
         $('#user_email').text(user.name).attr('title', user.provider + ' account');
         projectView.show(user.projects);
+        trSelected();
+        dragAndDrop();
         if (service.provider.local !== user.provider && user.imageUrl) {
             $(`#user_email`).after(`<img id="user_logo" src="${user.imageUrl}" alt="${user.name}">`);
         }
@@ -87,7 +98,8 @@ const taskView = {
         $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('status', task.status);
     },
     updateDeadline: task => {
-        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('deadline', task.deadline);
+        $(`.project[data-id='${task.projectId}'] .task[data-id='${task.id}']`).data('deadline', task.deadline)
+            .find(`input.deadline`).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).attr(`data-deadline`, task.deadline)
     },
     delete: task => {
         let $task = $(`.task[data-id='${task.id}']`);
@@ -126,12 +138,8 @@ function resetForms() {
 }
 
 function taskRemoveAndAddProjectFooter($tasks) {
-    let $parent = $tasks.parent();
     $tasks.each((i, task) => $(task).fadeOut(400 * (i + 1), function () {
         $(this).remove()
-        if (!$parent.children().length) {
-            $parent.append(`<tr class="row m-0 border-bottom space task"></tr>`);
-        }
     }))
 }
 
@@ -154,9 +162,7 @@ const addProjectButton =
     </div>`;
 
 function prepareProject(project) {
-    const tasks = project.tasks.length
-        ? makeTasks(project.tasks)
-        : `<tr class="row m-0 border-bottom space task"></tr>`;
+    const tasks = project.tasks.length ? makeTasks(project.tasks) : ``;
     return `<div class="col-10 col-sm-9 col-md-8 col-lg-7 col-xl-5 project" data-id="${project.id}">
                 <div class="row project-header">
                     <div class="col-1 project-calendar">
@@ -196,6 +202,7 @@ function prepareProject(project) {
                              <input type="text" class="form-control shadow-sm bg-white rounded"
                                    placeholder="Start typing here to create a task" name="name" required>
                              <input type="text" name="projectId" value="${project.id}" hidden>
+                             <input type="text" name="pos" value="0" hidden>
                             <div class="input-group-append">
                                 <button class="btn b-submit" type="submit">Add Task</button>
                             </div>
@@ -210,24 +217,40 @@ function prepareProject(project) {
 }
 
 function prepareTask(task) {
-    return `<tr class="row m-0 border-bottom task" data-status="${task.status}" data-deadline="${task.deadline}" data-id="${task.id}">
+    return `<tr class="row m-0 border-bottom task" data-status="${task.status}" data-id="${task.id}"
+            data-deadline="${task.deadline}" data-pos="${task.pos}">
                 <td class="col-1 border-right modal-dialog-centered">
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" data-id="${task.id}" id="task-select_${task.id}">
                         <label class="custom-control-label" for="task-select_${task.id}"></label>
                     </div>
                 </td>
-                <td class="col-9 border-left border-right"><p class="task-name btn-group-vertical">${task.name}</p></td>
+                 <td class="col-9 border-left border-right">
+                <div class="status-navbar">
+                    <span class="badge float-right col-auto">
+                        <label for="deadline_${task.id}"></label>
+                        <input title="click calendar to choose deadline" id="deadline_${task.id}" class="deadline"
+                        min="${minDate}" data-deadline="${task.deadline ? task.deadline : 'deadline >'}" 
+                        value="${task.deadline ? task.deadline : ``}" type="date">
+                    </span>
+                    <select class="task-status form-control form-control-sm float-right" title="click to choose status">
+                        <option class="btn btn-outline-primary" ${task.status === `NEW` ? `selected` : ``} type="button">NEW</option>
+                        <option class="btn btn-outline-warning" ${task.status === `IN PROGRESS` ? `selected` : ``}>IN PROGRESS</option>
+                        <option class="btn btn-outline-success" ${task.status === `COMPLETED` ? `selected` : ``}>COMPLETED</option>
+                    </select>
+                </div>
+                <p class="task-name btn-group-vertical">${task.name}</p>
+                </td>
                 <td class="col-2 task-change-icons hidden align-self-center">
                     <div class="row form-row">
-                        <button  class="btn col-4" data-toggle="tooltip" data-placement="top" title="Tooltip on top">
+                        <div  class="btn col-4" data-toggle="tooltip" data-placement="top" title="Tooltip on top">
                             <svg width="1em" height="1em" viewBox="0 0 16 16"
-                                 class="bi bi-arrows-expand priority" fill="currentColor"
+                                 class="bi bi-arrows-expand priority drag" fill="currentColor"
                                  xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd"
                                       d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zM7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10z"/>
                             </svg>
-                        </button>
+                        </div>
                         <button class="btn col-4">
                             <svg data-toggle="modal" data-target="#taskModal" class="bi bi-pen edit"
                                  fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16">
@@ -247,4 +270,38 @@ function prepareTask(task) {
                     </div>
                 </td>
             </tr>`;
+}
+
+function dragAndDrop(){
+    let taskPrev = {projectId: null, id: null, pos: null};
+    $(`tbody`).sortable({
+        beforeStop: function (event, ui) {
+            let taskPast = {
+                projectId: $(ui.item).closest(`.project`).data(`id`),
+                id: $(ui.item).data(`id`),
+                pos: $(ui.item).prev().data(`pos`) !== undefined
+                    ? $(ui.item).prev().data(`pos`)
+                    : $(ui.item).next().next().data(`pos`) -1
+            };
+            if (taskPrev.projectId !== taskPast.projectId
+                || taskPrev.id !== taskPast.id
+                || taskPrev.pos !== taskPast.pos) {
+                service.request(
+                    url.TASK,
+                    service.REQUEST_TYPE.PUT,
+                    () => null,
+                    service.prepareData(taskPast),
+                )
+            }
+        },
+        start: function (event, ui) {
+            taskPrev.projectId = $(ui.item).closest(`.project`).data(`id`);
+            taskPrev.id = $(ui.item).data(`id`);
+            taskPrev.pos = $(ui.item).prev().data(`pos`) !== undefined
+                ? $(ui.item).prev().data(`pos`)
+                : $(ui.item).next().next().data(`pos`) -1;
+        },
+        connectWith: "tbody",
+        items: "tr:not(.ui-state-disabled)",
+    }).disableSelection();
 }

@@ -119,12 +119,19 @@ header {
 }
 
 .task {
-    min-height: 40px;
-
+    min-height: 35px;
 }
 
 .task p {
     margin-bottom: 0;
+}
+
+tbody {
+    height: auto;
+    min-height:35px;
+    display:block;
+    border-radius: 0 0 15px 15px;
+    border-collapse: collapse;
 }
 
 .tasks {
@@ -134,9 +141,16 @@ header {
     border-radius: 0 0 15px 15px;
 }
 
-.tasks tr:hover {
-    cursor: pointer;
+.tasks tr:hover, .tasks tr.hovered {
     background-color: #FCFED5 !important;
+}
+
+.tasks tr .status-navbar {
+    display: none;
+}
+
+.tasks tr:hover .status-navbar, .tasks tr.hovered .status-navbar {
+    display: block;
 }
 
 .task-change-icons svg {
@@ -170,6 +184,9 @@ header {
     padding-bottom: 10px;
 }
 
+.hidden {
+    display: none;
+}
 .hidden {
     display: none;
 }
@@ -207,23 +224,13 @@ svg {
     display: none;
 }
 
-.notifyjs-corner {
-
-}
-
-img#user_logo {
-    border-radius: 50%;
-    width: 40px;
-    margin-left: 10px;
-}
-
-input {
+input#deadline {
     position: relative;
     width: 150px;
-    color: white;
+    color: black;
 }
 
-input:before {
+input#deadline:before {
     position: absolute;
     top: 3px;
     left: 3px;
@@ -232,20 +239,56 @@ input:before {
     color: black;
 }
 
-input::-webkit-datetime-edit, input::-webkit-inner-spin-button, input::-webkit-clear-button {
+.status-navbar span {
+    margin-bottom: -5px;
+}
+
+input.deadline:before {
+    content: attr(data-deadline);
+}
+
+input.deadline {
+    cursor: pointer;
+    display: inline-block;
+    color: black;
+    font-weight: bold;
+    position: relative;
+    height: 25px;
+    margin: -6px -17px 0 -10px;
+    width: 85px;
+    border-radius: 5px;
+    background-color: transparent;
+    border-style: none;
+}
+
+input#deadline::-webkit-datetime-edit,
+input#deadline::-webkit-inner-spin-button,
+input#deadline::-webkit-clear-button,
+input.deadline::-webkit-datetime-edit,
+input.deadline::-webkit-inner-spin-button,
+input.deadline::-webkit-clear-button {
     display: none;
 }
 
-input::-webkit-calendar-picker-indicator {
+.task-status {
+    margin-top: -4px;
+    text-align: right;
+    cursor: pointer;
+    text-align-last: right;
+    width: fit-content;
+    align-self: center;
+    height: 24px;
+    border: none;
+    background-color: transparent;
+}
+
+input#deadline::-webkit-calendar-picker-indicator,
+input.deadline::-webkit-calendar-picker-indicator {
     position: absolute;
     top: 3px;
     right: 0;
     color: black;
     opacity: 1;
-}
-
-input#deadline {
-    color: black !important;
 }
 
 .task-delete {
@@ -255,7 +298,7 @@ input#deadline {
     background: rgb(55, 90, 142);
     border: none;
     color: white;
-    linear-gradient(0deg, rgba(55, 90, 142, 1) 0%, rgba(64, 110, 173, 1) 50%, rgba(83, 132, 190, 1) 100%);
+linear-gradient(0 deg, rgba(55, 90, 142, 1) 0 %, rgba(64, 110, 173, 1) 50 %, rgba(83, 132, 190, 1) 100 %);
 }
 
 .task-delete .close {

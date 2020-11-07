@@ -5,6 +5,10 @@ $('a.google-btn').attr('href', url.GOOGLE_AUTH);
 $('a.facebook-btn').attr('href', url.FACEBOOK_AUTH);
 $('a.github-btn').attr('href', url.GITHUB_AUTH);
 
+$(`#task_on_hover`).click(function () {
+    $(`.tasks tr .status-navbar`).css('display', $(this).attr('aria-pressed') === `false` ? 'block' : '')
+})
+
 service.load();
 
 const auth = {
@@ -59,9 +63,7 @@ const projectAction = {
             service.request(
                 url.PROJECT,
                 projectAction.requestType,
-                projectAction.requestType === service.REQUEST_TYPE.POST ?
-                    projectView.add :
-                    projectView.rename,
+                projectAction.requestType === service.REQUEST_TYPE.POST ? projectView.add : projectView.rename,
                 service.prepareData($this.find('form')[0]),
             );
             $this.find('form').trigger('reset');
@@ -81,9 +83,7 @@ const projectAction = {
     }),
     delete: $(document).on('click', `.project .project-header .bi-trash`, function () {
         let $project = $(this).closest(`.project[data-id]`);
-        if (confirm(
-            'Delete project ' + $project.find(`.pr-header-name`).text() +
-            '?')) {
+        if (confirm(`Delete project ${$project.find(`.pr-header-name`).text()}?`)) {
             service.request(
                 url.PROJECT,
                 service.REQUEST_TYPE.DELETE,
@@ -94,6 +94,7 @@ const projectAction = {
     })
 };
 
+const minDate = new Date().toISOString().split('T')[0];
 const taskAction = {
     editModal: $('#taskModal').on({
         'show.bs.modal': function (event) {
@@ -104,7 +105,7 @@ const taskAction = {
             modal.find(`input[name='id']`).val($task.data('id'));
             modal.find(`[data-status='${$task.data('status')}']`).button('toggle');
             modal.find(`input[name='name']`).val($task.find('.task-name').text());
-            $('#deadline').attr({min: new Date().toISOString().split('T')[0]}).attr('data-deadline', $task.data('deadline'));
+            $('#deadline').attr({min: minDate}).attr('data-deadline', $task.data('deadline'));
         },
         'shown.bs.modal': function () {
             $(this).find(`input[name='name']`).trigger('focus');
@@ -122,33 +123,29 @@ const taskAction = {
             );
             return false;
         },
+        updateStatusSelect: $(document).on('change', `.task-status`, function () {
+            statusRequest($(this).closest(`.task`).data(`id`), $(this).find(`:selected`).html());
+        }),
         updateStatus: $(document).on('change', `#taskStatus input`, function () {
             let $this = $(this);
             if ($this.closest('#taskStatus').data('ready')) {
-                service.request(
-                    url.TASK,
-                    service.REQUEST_TYPE.PUT,
-                    taskView.updateStatus,
-                    service.prepareData({
-                            id: $this.closest(`form`).find(`input[name="id"]`).val(),
-                            status: $this.parent().data('status'),
-                    }),
-                );
+                statusRequest($this.closest(`form`).find(`input[name="id"]`).val(), $this.parent().data('status'));
             } else {
                 return false;
             }
         }),
-        updateDeadline: $(document).on('change', `input#deadline`, function () {
+        updateDeadline: $(document).on('change', `input#deadline, input.deadline`, function () {
             let $this = $(this);
             let date = $this.val();
             $this.attr('data-deadline', date);
+            let id = $this.closest(`form`).find(`input[name="id"]`).val();
             service.request(
                 url.TASK,
                 service.REQUEST_TYPE.PUT,
                 taskView.updateDeadline,
                 service.prepareData({
-                        id: $this.closest(`form`).find(`input[name="id"]`).val(),
-                        deadline: date,
+                    id: id ? id : $this.closest(`.task`).data(`id`),
+                    deadline: date,
                 }),
             );
         }),
@@ -173,6 +170,8 @@ const taskAction = {
         }
     }),
     add: $(document).on('submit', '.task-add form', function () {
+        let lastTask = $(this).closest(`.project`).find(`.task:last`);
+        $(this).find(`[name="pos"]`).val(lastTask.length ? parseInt(lastTask.data(`pos`)) + 1 : 1)
         service.request(url.TASK, service.REQUEST_TYPE.POST, taskView.add, service.prepareData(this));
         $(this).find(`input[name='name']`).val('');
         return false;
@@ -226,3 +225,12 @@ const taskAction = {
         }
     })
 };
+
+function statusRequest(id, status) {
+    service.request(
+        url.TASK,
+        service.REQUEST_TYPE.PUT,
+        taskView.updateStatus,
+        service.prepareData({id: id, status: status}),
+    )
+}
